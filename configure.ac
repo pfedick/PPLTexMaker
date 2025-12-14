@@ -14,7 +14,7 @@ AC_CONFIG_HEADERS([pplib/include/ppl7-config.h])
 ###############################################################################
 # Includes
 ###############################################################################
-sinclude(autoconf/aclocal.m4)
+#sinclude(autoconf/aclocal.m4)
 sinclude(pplib/acinclude.m4)
 sinclude(pplib/autoconf/pcre2.m4)
 sinclude(pplib/autoconf/png.m4)
@@ -459,7 +459,11 @@ LIBCURL=""
 LIBCDIO_LDFLAGS=""
 LIBMICROHTTPD_LIBS=""
 LIBIDN_LIBS=""
+MPG123_CFLAGS=""
+MPG123_LIBS=""
 
+AC_SUBST(MPG123_CFLAGS)
+AC_SUBST(MPG123_LIBS)
 
 AC_SUBST(JPEG_CFLAGS)
 AC_SUBST(OPENSSL_INCLUDES)

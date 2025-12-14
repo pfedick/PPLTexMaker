@@ -9,8 +9,9 @@ INCLUDE	= -Iinclude -Ipplib/include
 CPPFLAGS	= @CPPFLAGS@
 CXXFLAGS	= @CXXFLAGS@
 
-CFLAGS		=  $(INCLUDE) $(EXTRA_CFLAGS) $(CXXFLAGS) @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @DAV1D_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE2_CFLAGS@ @ICONV_CFLAGS@ \
-	@MPG123_CFLAGS@	@SDL2_CFLAGS@ @VORBIS_CFLAGS@
+CFLAGS		=  $(INCLUDE) $(EXTRA_CFLAGS) $(CXXFLAGS) @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @ZLIB_CFLAGS@ \
+	@BZ2_CFLAGS@ @PCRE2_CFLAGS@ @ICONV_CFLAGS@ \
+
 LDFLAGS		= @LDFLAGS@
 LIBS_PPL7 =  pplib/release/libppl7-gfx.a  pplib/release/libppl7-core.a
 LIBS		= $(LIBS_PPL7)  @ASAN_FLAGS@ \
@@ -23,7 +24,6 @@ PROGRAM	= texmaker
 
 OBJECTS=compile/main.o \
 	compile/cache.o \
-	compile/game.o \
 	compile/texture.o \
 	compile/texturefile.o
 

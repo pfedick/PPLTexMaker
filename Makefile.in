@@ -1,0 +1,99 @@
+VERSION ?= 1.0.0
+PREVIOUS_TAG = 1.0.0
+BUILD_NUMBER := $(shell git rev-list --all --count)
+BUILDDATE := $(shell date '+%Y%m%d')
+
+CXX			= @CXX@
+EXTRA_CFLAGS = -ggdb -Wall
+INCLUDE	= -Iinclude -Ipplib/include
+CPPFLAGS	= @CPPFLAGS@
+CXXFLAGS	= @CXXFLAGS@
+
+CFLAGS		=  $(INCLUDE) $(EXTRA_CFLAGS) $(CXXFLAGS) @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @DAV1D_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE2_CFLAGS@ @ICONV_CFLAGS@ \
+	@MPG123_CFLAGS@	@SDL2_CFLAGS@ @VORBIS_CFLAGS@
+LDFLAGS		= @LDFLAGS@
+LIBS_PPL7 =  pplib/release/libppl7-gfx.a  pplib/release/libppl7-core.a
+LIBS		= $(LIBS_PPL7)  @ASAN_FLAGS@ \
+	@LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE2_LIBS@ \
+	@PNG_LIBS@ @JPEG_LIBS@ @ICONV_LIBS@ \
+	-lstdc++
+
+
+PROGRAM	= texmaker
+
+OBJECTS=compile/main.o \
+	compile/cache.o \
+	compile/game.o \
+	compile/texture.o \
+	compile/texturefile.o
+
+$(PROGRAM): update_version ppl7 $(OBJECTS)
+	$(CXX) -o $(PROGRAM) $(OBJECTS) $(LIBS)
+	-chmod 755 $(PROGRAM)
+
+all: update_version $(PROGRAM)
+
+mingw: update_version
+	rm -rf release/deploy
+	mkdir -p release/deploy
+	make -j 16 ppl7
+	make -j 16 $(PROGRAM)
+	ldd texmaker.exe  | grep -v WINDOWS | grep ucrt64 | awk '{print $$3}' | while read line  ; do cp $${line} release/deploy; done
+
+	cat setup.tpl.iss | sed "s/^AppVersion=.*/AppVersion=${VERSION}.${BUILD_NUMBER}/"  \
+		| sed "s/^AppVerName=.*/AppVerName=GeorgeDecker ${VERSION}/"  \
+		| sed "s/^VersionInfoVersion=.*/VersionInfoVersion=${VERSION}/"  \
+		| sed "s/^OutputBaseFilename=.*/OutputBaseFilename=GeorgeDecker-${VERSION}-Setup/"  \
+		> setup.iss
+	cp decker.exe release/deploy
+	strip release/deploy/decker.exe
+
+setup: mingw
+	"C:\Program Files (x86)\Inno Setup 5\ISCC.exe" setup.iss
+
+
+history:
+	@echo "Git history between Tag $(PREVIOUS_TAG) and head" >  history.tmp
+	@echo "================================================================================" >>  history.tmp
+	@git log --pretty=format:"%ad=!=%s" --date=iso8601-strict $(PREVIOUS_TAG)...main | sort | awk -F "=!=" '{ print $$2}' >> history.tmp
+	cat history.tmp
+
+ppl7:
+	-mkdir -p pplib/release
+	cd pplib && $(MAKE) -j release/libppl7-core.a
+	cd pplib && $(MAKE) -j release/libppl7-gfx.a
+
+clean:
+	-rm -f compile/*.o $(PROGRAM) *.core
+
+cleanall:
+	-rm -f compile/*.o $(PROGRAM) texmaker mergeintro fixbricks *.core vplay flashlighttracking nightbackground
+	cd pplib && $(MAKE) clean
+
+update_version:
+	@mkdir -p tmp
+	@echo "#ifndef VERSION_H_" > tmp/version.h
+	@echo "#define VERSION_H_" >> tmp/version.h
+	@echo "#define TEXMAKER_VERSION \"$(VERSION)\"" >> tmp/version.h
+	@echo "#define TEXMAKER_REVSION \"$(BUILD_NUMBER)\"" >> tmp/version.h
+	@echo "#define TEXMAKER_BUILDDATE $(BUILDDATE)" >> tmp/version.h
+	@echo "#endif" >> tmp/version.h
+	@diff tmp/version.h include/version.h > /dev/null 2>&1; if [ $$? -ne 0 ] ; then cp tmp/version.h include/version.h; fi
+
+
+compile/main.o: src/main.cpp Makefile include/texmaker.h
+	- @mkdir -p compile
+	$(CXX) -o compile/main.o -c src/main.cpp $(CFLAGS)
+
+compile/cache.o: src/cache.cpp Makefile include/texmaker.h
+	- @mkdir -p compile
+	$(CXX) -o compile/cache.o -c src/cache.cpp $(CFLAGS)
+
+compile/texture.o: src/texture.cpp Makefile include/texmaker.h
+	- @mkdir -p compile
+	$(CXX) -o compile/texture.o -c src/texture.cpp $(CFLAGS)
+
+compile/texturefile.o: src/texturefile.cpp Makefile include/texmaker.h
+	- @mkdir -p compile
+	$(CXX) -o compile/texturefile.o -c src/texturefile.cpp $(CFLAGS)
+

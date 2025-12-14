@@ -1,0 +1,14 @@
+/.vscode
+/.project
+/compile/
+/autom4te.cache/
+/config.log
+/config.status
+/Makefile
+/*.exe
+/.settings
+/release
+tmp
+include/version.h
+*.log
+configure~

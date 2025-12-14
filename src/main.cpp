@@ -1,4 +1,5 @@
 #include "texmaker.h"
+#include "version.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +7,7 @@
 
 void help()
 {
-	printf("PPL TexMaker\n"
+	printf("PPL TexMaker Version %s.%s\n"
 		"\n"
 		"Optionen:\n"
 		"   -s DIR  Quellverzeichnis\n"
@@ -23,7 +24,8 @@ void help()
 		"   -d TEXT Description\n"
 		"   -x FILE Speichert jede fertige Textur als PNG\n"
 		"   --pivot_detection  params|bricks|lower_middle\n"
-		"   --help  zeigt diese Hilfe an\n"
+		"   --help  zeigt diese Hilfe an\n",
+		TEXMAKER_VERSION, TEXMAKER_REVSION
 
 	);
 }
@@ -36,7 +38,8 @@ int loadFromDirectory(const char* source, int px, int py, TextureFile& Tex) {
 	if (Path.instr("*") < 0) {
 		Path = ppl7::File::getPath(Path);
 		Pattern = "*.png";
-	} else {
+	}
+	else {
 		Pattern = ppl7::File::getFilename(Path);
 		Path = ppl7::File::getPath(Path);
 	}
@@ -66,9 +69,9 @@ int loadFromFile(const ppl7::String& source, int px, int py, TextureFile& Tex, i
 	ppl7::grafix::Size s(sx, sy);
 
 	img.load(source);
-	for (p.y=0;p.y < img.height();p.y+=sy) {
-		for (p.x=0;p.x < img.width();p.x+=sx) {
-			ppl7::grafix::Drawable d=img.getDrawable(p, s);
+	for (p.y = 0;p.y < img.height();p.y += sy) {
+		for (p.x = 0;p.x < img.width();p.x += sx) {
+			ppl7::grafix::Drawable d = img.getDrawable(p, s);
 			if (!Tex.AddSurface(d, NULL, id, px, py)) {
 				printf("Could not add surface to Texture\n");
 				return 1;
@@ -85,35 +88,36 @@ void loadFromListfile(const char* listfile, TextureFile& Tex)
 {
 
 	ppl7::File ff(listfile);
-	ppl7::String basedir=ppl7::File::getPath(listfile);
+	ppl7::String basedir = ppl7::File::getPath(listfile);
 	try {
 		while (!ff.eof()) {
-			ppl7::String line=ff.gets(1024);
+			ppl7::String line = ff.gets(1024);
 			ppl7::Array Token(line, ",");
 			if (Token.size() != 4) {
 				throw ppl7::Exception("ERROR: Ungueltige Anzahl Token");
 			}
-			int id=Token[0].toInt();
-			ppl7::String file=basedir + "/" + Token[1];
-			int px=Token[2].toInt();
-			int py=Token[2].toInt();
+			int id = Token[0].toInt();
+			ppl7::String file = basedir + "/" + Token[1];
+			int px = Token[2].toInt();
+			int py = Token[2].toInt();
 			//printf("Found: %s, ", (const char*)(file));
 			if (!Tex.AddFile(file, id, px, py)) {
 				throw ppl7::Exception("Debug 3");
 			}
 		}
-	} catch (...) {
+	}
+	catch (...) {
 
 	}
 }
 
 int main(int argc, char** argv)
 {
-	ppl7::String listfile=ppl7::GetArgv(argc, argv, "-f");
-	ppl7::String source=ppl7::GetArgv(argc, argv, "-s");
-	ppl7::String target=ppl7::GetArgv(argc, argv, "-t");
-	ppl7::String savepng=ppl7::GetArgv(argc, argv, "-x");
-	ppl7::String pivot_detection=ppl7::GetArgv(argc, argv, "--pivot_detection");
+	ppl7::String listfile = ppl7::GetArgv(argc, argv, "-f");
+	ppl7::String source = ppl7::GetArgv(argc, argv, "-s");
+	ppl7::String target = ppl7::GetArgv(argc, argv, "-t");
+	ppl7::String savepng = ppl7::GetArgv(argc, argv, "-x");
+	ppl7::String pivot_detection = ppl7::GetArgv(argc, argv, "--pivot_detection");
 
 	if (ppl7::HaveArgv(argc, argv, "--help") || (source.isEmpty() && listfile.isEmpty()) || target.isEmpty() || argc < 2) {
 		help();
@@ -129,10 +133,10 @@ int main(int argc, char** argv)
 	TextureFile Tex;
 
 	ppl7::String Tmp;
-	Tmp=ppl7::GetArgv(argc, argv, "-a"); if (Tmp.notEmpty()) Tex.SetAuthor(Tmp);
-	Tmp=ppl7::GetArgv(argc, argv, "-c"); if (Tmp.notEmpty()) Tex.SetCopyright(Tmp);
-	Tmp=ppl7::GetArgv(argc, argv, "-n"); if (Tmp.notEmpty()) Tex.SetName(Tmp);
-	Tmp=ppl7::GetArgv(argc, argv, "-d"); if (Tmp.notEmpty()) Tex.SetDescription(Tmp);
+	Tmp = ppl7::GetArgv(argc, argv, "-a"); if (Tmp.notEmpty()) Tex.SetAuthor(Tmp);
+	Tmp = ppl7::GetArgv(argc, argv, "-c"); if (Tmp.notEmpty()) Tex.SetCopyright(Tmp);
+	Tmp = ppl7::GetArgv(argc, argv, "-n"); if (Tmp.notEmpty()) Tex.SetName(Tmp);
+	Tmp = ppl7::GetArgv(argc, argv, "-d"); if (Tmp.notEmpty()) Tex.SetDescription(Tmp);
 
 	if (pivot_detection.notEmpty()) {
 		printf("test: %s\n", (const char*)pivot_detection);
@@ -146,38 +150,42 @@ int main(int argc, char** argv)
 	}
 
 	int t, w, h, px, py, sx, sy;
-	t=ppl7::GetArgv(argc, argv, "-mt").toInt();
-	w=ppl7::GetArgv(argc, argv, "-w").toInt();
-	h=ppl7::GetArgv(argc, argv, "-h").toInt();
-	px=ppl7::GetArgv(argc, argv, "-px").toInt();
-	py=ppl7::GetArgv(argc, argv, "-py").toInt();
-	sx=ppl7::GetArgv(argc, argv, "-sx").toInt();
-	sy=ppl7::GetArgv(argc, argv, "-sy").toInt();
+	t = ppl7::GetArgv(argc, argv, "-mt").toInt();
+	w = ppl7::GetArgv(argc, argv, "-w").toInt();
+	h = ppl7::GetArgv(argc, argv, "-h").toInt();
+	px = ppl7::GetArgv(argc, argv, "-px").toInt();
+	py = ppl7::GetArgv(argc, argv, "-py").toInt();
+	sx = ppl7::GetArgv(argc, argv, "-sx").toInt();
+	sy = ppl7::GetArgv(argc, argv, "-sy").toInt();
 
 	Tex.SetMaxTextureNum(t);
-	if (w > 0 && h == 0) h=w;
-	if (h > 0 && w == 0) w=h;
+	if (w > 0 && h == 0) h = w;
+	if (h > 0 && w == 0) w = h;
 	if (w > 0) Tex.SetTextureSize(w, h);
 
 	if (source.notEmpty()) {
 		if (ppl7::File::exists(source)) {
 			printf("source=%s\n", (const char*)source);
-			ppl7::DirEntry d=ppl7::File::statFile(source);
+			ppl7::DirEntry d = ppl7::File::statFile(source);
 			if (d.isFile()) {
-				int ret=loadFromFile(source, px, py, Tex, sx, sy);
+				int ret = loadFromFile(source, px, py, Tex, sx, sy);
 				if (ret != 0) return ret;
-			} else {
+			}
+			else {
 				printf("ERROR: this is not a file [%s]\n", (const char*)source);
 				return 1;
 			}
-		} else {
-			int ret=loadFromDirectory(source, px, py, Tex);
+		}
+		else {
+			int ret = loadFromDirectory(source, px, py, Tex);
 			if (ret != 0) return ret;
 		}
-	} else if (listfile.notEmpty()) {
+	}
+	else if (listfile.notEmpty()) {
 		try {
 			loadFromListfile(listfile, Tex);
-		} catch (const ppl7::Exception& ex) {
+		}
+		catch (const ppl7::Exception& ex) {
 			ex.print();
 			return 1;
 		}
@@ -186,7 +194,8 @@ int main(int argc, char** argv)
 
 	try {
 		Tex.Save(target);
-	} catch (const ppl7::Exception& ex) {
+	}
+	catch (const ppl7::Exception& ex) {
 		ex.print();
 		return 1;
 	}

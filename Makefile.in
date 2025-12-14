@@ -33,6 +33,10 @@ $(PROGRAM): update_version ppl7 $(OBJECTS)
 
 all: update_version $(PROGRAM)
 
+install: update_version $(PROGRAM)
+	cp $(PROGRAM) @prefix@/bin
+
+
 mingw: update_version
 	rm -rf release/deploy
 	mkdir -p release/deploy

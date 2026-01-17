@@ -6,9 +6,10 @@
 
 enum PIVOT_DETECTION
 {
-	PIVOT_PARAMS=0,
-	PIVOT_BRICKS=1,
-	PIVOT_LOWER_MIDDLE=2
+	PIVOT_PARAMS = 0,
+	PIVOT_BRICKS = 1,
+	PIVOT_LOWER_MIDDLE = 2,
+	PIVOT_LOWER_LEFT = 3
 };
 
 
@@ -29,7 +30,9 @@ public:
 	int id;
 	int width;
 	int height;
-	ppl7::grafix::Image texture;
+	ppl7::grafix::Image albedo;
+	ppl7::grafix::Image normal;
+	ppl7::grafix::Image specular;
 	ppl7::grafix::Point pivot;
 	ppl7::grafix::Point offset;
 };
@@ -79,16 +82,19 @@ private:
 	std::list<IndexItem>	Index;
 	std::map<uint64_t, CacheItem> cache;
 	bool debug;
+	bool use_normal;
+	bool use_specular;
 
-	int twidth, theight, maxtnum;
+	int twidth, theight;
 	PIVOT_DETECTION pivot_detection;
 	void detectPivotBricks(const ppl7::grafix::Drawable& surface, int& px, int& py);
 	void detectPivotLowerMiddle(const ppl7::grafix::Drawable& surface, int& px, int& py);
+	void detectPivotLowerLeft(const ppl7::grafix::Drawable& surface, int& px, int& py);
 	void addIndexChunk();
 	void addTextureChunks();
 
 	// cache
-	void addToCache(int id, const ppl7::grafix::Drawable& surface, const ppl7::grafix::Rect& r, const ppl7::grafix::Point& pivot);
+	void addToCache(int id, const ppl7::grafix::Drawable& albedo, const ppl7::grafix::Drawable& normal, const ppl7::grafix::Drawable& specular, const ppl7::grafix::Rect& r, const ppl7::grafix::Point& pivot);
 	void printCache() const;
 	void generateTexturesFromCache();
 	void addToTexture(const CacheItem& item);
@@ -105,7 +111,7 @@ public:
 	void SetDescription(const char* description);
 	void SetPivotDetection(const PIVOT_DETECTION d);
 	int AddFile(const ppl7::String& filename, int id, int pivotx, int pivoty);
-	int AddSurface(ppl7::grafix::Drawable& surface, ppl7::grafix::Rect* r, int id, int pivotx, int pivoty);
+	int AddSurface(ppl7::grafix::Drawable& surface, ppl7::grafix::Drawable& normal, ppl7::grafix::Drawable& specular, ppl7::grafix::Rect* r, int id, int pivotx, int pivoty);
 
 	void Save(const char* filename);
 	void SaveTextures(const char* prefix);

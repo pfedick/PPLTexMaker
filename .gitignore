@@ -12,3 +12,8 @@ tmp
 include/version.h
 *.log
 configure~
+.gemini-instructions.md
+.github
+.clang-format-all
+copilot-verhaltensregeln.txt
+*.tex

@@ -5,15 +5,16 @@
 
 TextureFile::TextureFile()
 {
-	twidth=256;
-	theight=256;
-	maxtnum=0;
-	debug=false;
+	twidth = 512;
+	theight = 512;
+	debug = false;
+	use_normal = false;
+	use_specular = false;
 	File.setId("TEXS");
 	File.setVersion(1, 0);
 	File.setCompression(ppl7::Compression::Algo_NONE);
 	File.setAuthor("PPL TextureMaker");
-	pivot_detection=PIVOT_PARAMS;
+	pivot_detection = PIVOT_PARAMS;
 }
 
 TextureFile::~TextureFile()
@@ -24,15 +25,9 @@ TextureFile::~TextureFile()
 
 void TextureFile::SetTextureSize(int width, int height)
 {
-	twidth=width;
-	theight=height;
+	twidth = width;
+	theight = height;
 }
-
-void TextureFile::SetMaxTextureNum(int num)
-{
-	maxtnum=num;
-}
-
 
 void TextureFile::SetAuthor(const char* name)
 {
@@ -55,32 +50,35 @@ void TextureFile::SetDescription(const char* description)
 
 void TextureFile::SetPivotDetection(const PIVOT_DETECTION d)
 {
-	pivot_detection=d;
+	pivot_detection = d;
 }
 
 int TextureFile::AddFile(const ppl7::String& filename, int id, int pivotx, int pivoty)
 {
 	//ppl7::grafix::Grafix *gfx=ppl7::grafix::GetGrafix();
 	ppl7::grafix::Image surface;
+	ppl7::grafix::Image normal;
+	ppl7::grafix::Image specular;
+
 	surface.load(filename, ppl7::grafix::RGBFormat::A8R8G8B8);
 	// Clipping
 	ppl7::grafix::Rect r;
 	ppl7::grafix::Color c;
-	r.x1=999999;
-	r.y1=999999;
-	r.x2=0;
-	r.y2=0;
-	bool empty=true;
-	for (int y=0;y < surface.height();y++) {
-		for (int x=0;x < surface.width();x++) {
-			c=surface.getPixel(x, y);
+	r.x1 = 999999;
+	r.y1 = 999999;
+	r.x2 = 0;
+	r.y2 = 0;
+	bool empty = true;
+	for (int y = 0;y < surface.height();y++) {
+		for (int x = 0;x < surface.width();x++) {
+			c = surface.getPixel(x, y);
 			// Wenn der AlphaWert > 0 ist, haben wir einen gültigen Pixel
 			if (c.alpha() > 0) {
-				if (x < r.x1) r.x1=x;
-				if (x > r.x2) r.x2=x;
-				if (y < r.y1) r.y1=y;
-				if (y > r.y2) r.y2=y;
-				empty=false;
+				if (x < r.x1) r.x1 = x;
+				if (x > r.x2) r.x2 = x;
+				if (y < r.y1) r.y1 = y;
+				if (y > r.y2) r.y2 = y;
+				empty = false;
 			}
 		}
 	}
@@ -95,33 +93,38 @@ int TextureFile::AddFile(const ppl7::String& filename, int id, int pivotx, int p
 	}
 	r.x2++;
 	r.y2++;
-	int width=r.width();
-	int height=r.height();
+	int width = r.width();
+	int height = r.height();
 	if (pivot_detection == PIVOT_BRICKS) {
 		detectPivotBricks(surface, pivotx, pivoty);
-	} else if (pivot_detection == PIVOT_LOWER_MIDDLE) {
+	}
+	else if (pivot_detection == PIVOT_LOWER_MIDDLE) {
 		detectPivotLowerMiddle(surface, pivotx, pivoty);
+	}
+	else if (pivot_detection == PIVOT_LOWER_LEFT) {
+		detectPivotLowerLeft(surface, pivotx, pivoty);
+
 	}
 	if (debug) {
 		printf("Dimensions: (%i/%i)-(%i/%i) = %i x %i, Pivot: %d/%d\n",
 			r.left(), r.top(), r.right(), r.bottom(), width, height,
 			pivotx, pivoty);
 	}
-	return AddSurface(surface, &r, id, pivotx, pivoty);
+	return AddSurface(surface, normal, specular, &r, id, pivotx, pivoty);
 }
 
 void TextureFile::detectPivotBricks(const ppl7::grafix::Drawable& surface, int& px, int& py)
 {
-	px=999999;
-	py=0;
-	for (int y=0;y < surface.height();y++) {
-		for (int x=0;x < surface.width();x++) {
-			ppl7::grafix::Color c=surface.getPixel(x, y);
+	px = 999999;
+	py = 0;
+	for (int y = 0;y < surface.height();y++) {
+		for (int x = 0;x < surface.width();x++) {
+			ppl7::grafix::Color c = surface.getPixel(x, y);
 			// Wenn der AlphaWert > 0 ist, haben wir einen gültigen Pixel
 			if (c.alpha() > 0) {
 				if (x <= px) {
-					px=x;
-					py=y;
+					px = x;
+					py = y;
 				}
 			}
 		}
@@ -130,39 +133,57 @@ void TextureFile::detectPivotBricks(const ppl7::grafix::Drawable& surface, int& 
 
 void TextureFile::detectPivotLowerMiddle(const ppl7::grafix::Drawable& surface, int& px, int& py)
 {
-	px=surface.width() / 2;
-	py=999999;
-	for (int y=surface.height() - 1;y >= 0;y--) {
-		for (int x=0;x < surface.width();x++) {
-			ppl7::grafix::Color c=surface.getPixel(x, y);
+	px = surface.width() / 2;
+	py = 999999;
+	for (int y = surface.height() - 1;y >= 0;y--) {
+		for (int x = 0;x < surface.width();x++) {
+			ppl7::grafix::Color c = surface.getPixel(x, y);
 			// Wenn der AlphaWert > 0 ist, haben wir einen gültigen Pixel
 			if (c.alpha() > 0) {
-				py=y;
+				py = y;
 				return;
 			}
 		}
 	}
 }
 
+void TextureFile::detectPivotLowerLeft(const ppl7::grafix::Drawable& surface, int& px, int& py)
+{
+	px = 999999;
+	py = 999999;
+	bool found_y = false;
+	for (int y = surface.height() - 1;y >= 0;y--) {
+		for (int x = 0;x < surface.width();x++) {
+			ppl7::grafix::Color c = surface.getPixel(x, y);
+			// Wenn der AlphaWert > 0 ist, haben wir einen gültigen Pixel
+			if (c.alpha() > 0) {
+				if (!found_y) {
+					py = y;
+					found_y = true;
+				}
+				if (x < px) px = x;
+			}
+		}
+	}
+}
 
-
-
-int TextureFile::AddSurface(ppl7::grafix::Drawable& surface, ppl7::grafix::Rect* r, int id, int pivotx, int pivoty)
+int TextureFile::AddSurface(ppl7::grafix::Drawable& surface, ppl7::grafix::Drawable& normal, ppl7::grafix::Drawable& specular, ppl7::grafix::Rect* r, int id, int pivotx, int pivoty)
 {
 	ppl7::grafix::Rect rr;
 	if (!r) {
-		rr.x1=0;
-		rr.y1=0;
-		rr.x2=surface.width();
-		rr.y2=surface.height();
-	} else {
-		rr.x1=r->x1;
-		rr.y1=r->y1;
-		rr.x2=r->x2;
-		rr.y2=r->y2;
+		rr.x1 = 0;
+		rr.y1 = 0;
+		rr.x2 = surface.width();
+		rr.y2 = surface.height();
 	}
-	int width=rr.width();
-	int height=rr.height();
+	else {
+		rr.x1 = r->x1;
+		rr.y1 = r->y1;
+		rr.x2 = r->x2;
+		rr.y2 = r->y2;
+	}
+	int width = rr.width();
+	int height = rr.height();
 	// Falls das Sprite größer ist, als die Texturgröße, lehnen wir es ab
 	if (width > twidth || height > theight) {
 		printf("Sprite ist zu gross fuer Textur\n");
@@ -170,43 +191,7 @@ int TextureFile::AddSurface(ppl7::grafix::Drawable& surface, ppl7::grafix::Rect*
 	}
 	fflush(stdout);
 
-	addToCache(id, surface, rr, ppl7::grafix::Point(pivotx, pivoty));
-	return 1;
-
-	// Haben wir dafür Platz in einer vorhandenen Textur?
-	ppl7::grafix::Rect tgt;
-	bool found=false;
-	std::list<Texture>::iterator it;
-	it=TextureList.begin();
-	Texture* tx=NULL;
-	while (it != TextureList.end()) {
-		tx=&(*it);
-		if (tx->add(surface, rr, tgt)) {
-			found=true;
-			break;
-		}
-		++it;
-	}
-	if (!found) {
-		//printf("Beginne neue Textur\n");
-		tx=new Texture(twidth, theight);
-		if (!tx->add(surface, rr, tgt)) {
-			delete tx;
-			printf("Textur konnte nicht hinzugefuegt werden\n");
-			return 0;
-		}
-		TextureList.push_back(*tx);
-	}
-	// Eintrag im Index machen
-	IndexItem item;
-	item.ItemId=id;
-	item.TextureId=tx->GetId();
-	item.pos=tgt;
-	item.pivot.x=pivotx;
-	item.pivot.y=pivoty;
-	item.offset.x=rr.x1;
-	item.offset.y=rr.y1;
-	Index.push_back(item);
+	addToCache(id, surface, normal, specular, rr, ppl7::grafix::Point(pivotx, pivoty));
 	return 1;
 }
 
@@ -222,17 +207,17 @@ void TextureFile::addIndexChunk()
 	//          Byte 18: Offset         (4 byte, je 2 Byte für x und y)
 	//          ==> 22 Byte pro Eintrag
 
-	size_t bytes=4 + 22 * Index.size();
-	char* buffer=(char*)malloc(bytes);
+	size_t bytes = 4 + 22 * Index.size();
+	char* buffer = (char*)malloc(bytes);
 	ppl7::Poke32(buffer + 0, Index.size());
 	std::list<IndexItem>::const_iterator it;
-	char* p=buffer + 4;
-	for (it=Index.begin();it != Index.end();++it) {
+	char* p = buffer + 4;
+	for (it = Index.begin();it != Index.end();++it) {
 		if ((size_t)(p - buffer + 22) > bytes) {
 			free(buffer);
 			throw ppl7::Exception("Hier stimmt was nicht!");
 		}
-		const IndexItem& item=(*it);
+		const IndexItem& item = (*it);
 		ppl7::Poke32(p + 0, item.ItemId);
 		ppl7::Poke16(p + 4, item.TextureId);
 		ppl7::Poke16(p + 6 + 0, item.pos.left());
@@ -243,11 +228,11 @@ void TextureFile::addIndexChunk()
 		ppl7::Poke16(p + 14 + 2, item.pivot.y);
 		ppl7::Poke16(p + 18 + 0, item.offset.x);
 		ppl7::Poke16(p + 18 + 2, item.offset.y);
-		p=p + 22;
+		p = p + 22;
 	}
 	// Chunk speichern
 	// Zunächst erstellen wir den Index-Chunk
-	ppl7::PFPChunk* chunk=new ppl7::PFPChunk;
+	ppl7::PFPChunk* chunk = new ppl7::PFPChunk;
 	chunk->setName("INDX");
 	chunk->setData(buffer, bytes);
 	File.addChunk(chunk);
@@ -257,8 +242,8 @@ void TextureFile::addTextureChunks()
 {
 	// Nun die Texturen ergänzen
 	std::list<Texture>::const_iterator it;
-	for (it=TextureList.begin();it != TextureList.end();++it) {
-		ppl7::PFPChunk* chunk=(*it).MakeChunk();
+	for (it = TextureList.begin();it != TextureList.end();++it) {
+		ppl7::PFPChunk* chunk = (*it).MakeChunk();
 		if (!chunk) {
 			throw ppl7::Exception("Texture-Chunk konnte nicht erstellt werden");
 		}
@@ -282,9 +267,9 @@ void TextureFile::Save(const char* filename)
 void TextureFile::SaveTextures(const char* prefix)
 {
 	ppl7::String Filename;
-	int i=0;
+	int i = 0;
 	std::list<Texture>::const_iterator it;
-	for (it=TextureList.begin();it != TextureList.end();++it) {
+	for (it = TextureList.begin();it != TextureList.end();++it) {
 		Filename.setf("%s-%02i.bmp", prefix, i);
 		printf("    save texture to file: %s\n", (const char*)Filename);
 		(*it).SaveTexture(Filename);

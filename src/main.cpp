@@ -19,7 +19,7 @@ void help()
            "   -i       take index from filename"
            "   -pd      method of pivot point detection: fixed|bricks|lower_middle|lower_left\n"
            "            when using \"params\", the parameter -pp or -px and -py are mandatory\n"
-           "   -pp x,y  pivot-point for all sprites (default=0,0)\n"
+           //"   -pp x,y  pivot-point for all sprites (default=0,0)\n"
            "   -px #    pivot-point for all sprites, x-coordinate (default=0)\n"
            "   -py #    pivot-point for all sprites, y-coordinate (default=0)\n"
            "   -a TEXT  name of authors (optional)\n"
@@ -31,7 +31,7 @@ void help()
            TEXMAKER_VERSION, TEXMAKER_REVSION);
 }
 
-int loadFromDirectory(const ppl7::String &source, int px, int py, TextureFile &Tex)
+int loadFromDirectory(const ppl7::String &source, int px, int py, TextureFile &Tex, bool use_index_from_filename)
 {
     ppl7::String basedir = ppl7::File::getPath(source);
     if (ppl7::File::exists(basedir + "/normal")) {
@@ -60,7 +60,18 @@ int loadFromDirectory(const ppl7::String &source, int px, int py, TextureFile &T
     Dir.reset(it);
     ppl7::DirEntry Entry;
     while (Dir.getNextPattern(Entry, it, Pattern)) {
-        printf("Found: %s\n", (const char *)(Entry.File));
+        if (use_index_from_filename) {
+            ppl7::RegEx regex;
+            std::vector<ppl7::String> matches;
+            if (regex.capture("/^.*?([0-9]+)_([0-9]+)\\.png$/", Entry.File, matches)) {
+                id = matches[1].toInt() + matches[2].toInt();
+                printf("we have two matches: %s, %s, id=%d\n", (const char *)matches[1], (const char *)matches[2], id);
+            } else if (regex.capture("/^.*?([0-9]+)\\.png$/", Entry.File, matches)) {
+                printf("we have a match: %s\n", (const char *)matches[1]);
+                id = matches[1].toInt();
+            }
+        }
+        printf("Found: %s, using id=%d\n", (const char *)(Entry.File), id);
         if (!Tex.AddFile(Entry.File, id, px, py)) {
             return 1;
         }
@@ -167,6 +178,10 @@ int main(int argc, char **argv)
             return (1);
         }
     }
+    bool use_index_from_filename = false;
+    if (ppl7::HaveArgv(argc, argv, "-i")) {
+        use_index_from_filename = true;
+    }
 
     int w, h, px, py, sx, sy;
     w = ppl7::GetArgv(argc, argv, "-w").toInt();
@@ -189,7 +204,7 @@ int main(int argc, char **argv)
                 if (ret != 0) return ret;
             } else if (ppl7::File::isDir(source)) {
                 printf("load from directory: source=%s\n", (const char *)source);
-                int ret = loadFromDirectory(source, px, py, Tex);
+                int ret = loadFromDirectory(source, px, py, Tex, use_index_from_filename);
                 if (ret != 0) return ret;
             } else {
                 printf("ERROR: source is not a file or directory [%s]\n", (const char *)source);

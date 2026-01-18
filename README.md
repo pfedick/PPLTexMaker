@@ -11,6 +11,10 @@ Beside the opaque pixels (albedo), normal and sepecular maps can be stored, too.
 
 The tool expects, that all sprites are stored in a directory. If you use normal maps or specular maps, they have to be stored in their own directories. Alls Sprites must be stored as png-Files. Filenames get sorted alphabetically and the "lowest" filename will be sprite number 0. Filenames of normal oder specular maps must be identic to the albedo sprites.
 
+When using the "-i"-Option, it is expected, that the filename contains a number, which is then used as index in the Texture-File. Example: "frame_0042.png" will get Index 42. It is also possible, to code two numbers into the filename. Both numbers will then be added together to get the index. Example: "frame_1000_0042.png" will get Index 1042. "1000_42.png" will also work.
+
+
+
 File structure:
 
 When using albedo only, you can put all sprites in one directory:
@@ -51,12 +55,13 @@ Options:
 
 | Option      | Description        |
 |-----------|-------------|
-| -s SOURCE | Source directory |
-| -t TARGET | Target file |
-| -f FILE   | Todo |
+| -s SOURCE | source directory |
+| -t TARGET | target file |
+| -f FILE   | json or yaml file with sprite data (optional) |
 | -w PIXEL  | width of textures |
 | -h PIXEL  | height of textures |
-| -pd METHOD | Method of pivot detection: <br>- lower_middle (=default)<br>- fixed (use -px and -py)|
+| -i        | take index from filename |
+| -pd METHOD | Method of pivot detection: <br>- lower_left<br>- lower_middle (=default)<br>- fixed (use -px and -py)|
 | -px PIXEL | x-position of pivot point when using -pd fixed |
 | -py PIXEL | y-position of pivot point when using -pd fixed |
 | -a AUTHOR | Optional, Name of Author (use quotes when using spaces) |
@@ -65,6 +70,92 @@ Options:
 | -d DESCRIPTION | Optional, Description (use quotes when using spaces) |
 | -x FILE | Optional, saves every albedo texture as png-file with this prefix |
 | --help | Shows help |
+
+
+## Optional Config-File
+All Values in this file are optional
+If you have a single sprite with an alternate pivot point, then it is possible to configure only this single sprite in the config file
+
+
+### Json-Format
+
+```json
+{
+  "source": "SOURCE_DIRECTORY",
+  "target": "TARGETFILE",
+  "width": 2048, // width of textures
+  "height": 2048, // height of textures
+  "pivot": {
+    "method": "METHOD", // lower_left, lower_middle (=default), fixed
+    "x": 64, // x-position of pivot point when using method fixed
+    "y": 128, // y-position of pivot point when using method fixed
+  },
+  "author": "AUTHOR",
+  "copyright": "COPYRIGHT",
+  "name": "NAME",
+  "description": "DESCRIPTION",
+
+  "sprites": [
+    {
+      "index": 1,
+      "albedo": "FILENAME",
+      "normal": "FILENAME",
+      "specular": "FILENAME",
+      "pivot": {
+        "method": "lower_middle"
+      }
+    },
+    {
+      "index": 2,
+      "albedo": "FILENAME",
+      "normal": "FILENAME",
+      "specular": "FILENAME",
+      "pivot": {
+        "method": "fixed",
+        "x": 0,
+        "y": 0
+      }
+    },
+    ...
+  ]
+}
+```
+
+### Yaml-Format (TODO, not supported yet)
+
+```yaml
+---
+source: SOURCE_DIRECTORY
+target: TARGETFILE
+width: 2048 # width of textures
+height: 2048 # height of textures
+pivot:
+  method: METHOD # lower_left, lower_middle (=default), fixed
+  x: x-position of pivot point when using method fixed
+  y: y-position of pivot point when using method fixed
+author: AUTHOR
+copyright: COPYRIGHT
+name: NAME
+description: DESCRIPTION
+
+sprites:
+  - index: 1
+    albedo: FILENAME
+    normal: FILENAME
+    specular: FILENAME
+    pivot:
+      method: lower_middle
+  - index: 2
+    albedo: FILENAME
+    normal: FILENAME
+    specular: FILENAME
+    pivot:
+      method: fixed
+      x: 0
+      y: 0    
+  ...
+```
+
 
 ## PPLIB (aka ppl7)
 This projects uses my library pplib as abstraction layer to the underlaying operation system, strings and graphic functions.

@@ -11,47 +11,57 @@ void help()
     printf("PPL TexMaker Version %s.%s\n"
            "\n"
            "Optionen:\n"
-           "   -s DIR  Quellverzeichnis\n"
-           "   -t FILE Zieldatei\n"
-           "   -f FILE Datei mit Sprite-Liste\n"
-           "   -w #    Breite einer Textur (Default=512)\n"
-           "   -h #    Hoehe einer Textur (Default=Breite)\n"
-           "   -px #   Pivot-Punkt für alle Texturen, x-Koordinate (Default=0)\n"
-           "   -py #   Pivot-Punkt für alle Texturen, y-Koordinate (Default=0)\n"
-           "   -a TEXT Name des Authors\n"
-           "   -c TEXT Copyright-String\n"
-           "   -n TEXT Name der Datei\n"
-           "   -d TEXT Description\n"
-           "   -x FILE Speichert jede fertige Textur als PNG\n"
-           "   --pivot_detection  params|bricks|lower_middle|lower_left\n"
-           "   --help  zeigt diese Hilfe an\n",
-           TEXMAKER_VERSION, TEXMAKER_REVSION
-
-    );
+           "   -s DIR   source directory\n"
+           "   -t FILE  target file\n"
+           "   -f FILE  json file with sprite data (optional)\n"
+           "   -w #     width of textures in the file in pixel (default=512)\n"
+           "   -h #     height of textures in the file in pixel (default=width)\n"
+           "   -i       take index from filename"
+           "   -pd      method of pivot point detection: fixed|bricks|lower_middle|lower_left\n"
+           "            when using \"params\", the parameter -pp or -px and -py are mandatory\n"
+           "   -pp x,y  pivot-point for all sprites (default=0,0)\n"
+           "   -px #    pivot-point for all sprites, x-coordinate (default=0)\n"
+           "   -py #    pivot-point for all sprites, y-coordinate (default=0)\n"
+           "   -a TEXT  name of authors (optional)\n"
+           "   -c TEXT  Copyright-String (optional)\n"
+           "   -n TEXT  Name der Datei (optional)\n"
+           "   -d TEXT  Description (optional)\n"
+           "   -x FILE  exports all textures as png files with this prefix\n"
+           "   --help   shows this help\n",
+           TEXMAKER_VERSION, TEXMAKER_REVSION);
 }
 
 int loadFromDirectory(const ppl7::String &source, int px, int py, TextureFile &Tex)
 {
+    ppl7::String basedir = ppl7::File::getPath(source);
+    if (ppl7::File::exists(basedir + "/normal")) {
+        Tex.EnableNormal(basedir + "/normal");
+    }
+    if (ppl7::File::exists(basedir + "/specular")) {
+        Tex.EnableSpecular(basedir + "/specular");
+    }
+    if (ppl7::File::exists(basedir + "/albedo")) {
+        Tex.EnableAlbedo(basedir + "/albedo");
+        basedir = basedir + "/albedo";
+    } else {
+        Tex.EnableAlbedo(basedir);
+    }
+
+    printf("basedir: %s\n", (const char *)basedir);
     int id = 0;
     ppl7::Dir Dir;
     ppl7::String Path, Pattern;
-    Path = source;
+    Path = basedir;
+    Pattern = "*.png";
 
-    if (Path.instr("*") < 0) {
-        Path = ppl7::File::getPath(Path);
-        Pattern = "*.png";
-    } else {
-        Pattern = ppl7::File::getFilename(Path);
-        Path = ppl7::File::getPath(Path);
-    }
-    Dir.open(Path, ppl7::Dir::SORT_FILENAME);
+    // printf("Path: %s, Pattern: %s\n", (const char *)basedir, (const char *)Pattern);
+    Dir.open(basedir, ppl7::Dir::SORT_FILENAME);
     ppl7::Dir::Iterator it;
     Dir.reset(it);
     ppl7::DirEntry Entry;
     while (Dir.getNextPattern(Entry, it, Pattern)) {
-        // printf("Found: %s, ", (const char*)(Entry.File));
+        printf("Found: %s\n", (const char *)(Entry.File));
         if (!Tex.AddFile(Entry.File, id, px, py)) {
-            // printf("Debug 2\n");
             return 1;
         }
         id++;

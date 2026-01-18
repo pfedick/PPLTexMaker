@@ -1,119 +1,127 @@
-#include <ppl7.h>
-#include <ppl7-grafix.h>
 #include <list>
 #include <map>
-
+#include <ppl7-grafix.h>
+#include <ppl7.h>
 
 enum PIVOT_DETECTION
 {
-	PIVOT_PARAMS = 0,
-	PIVOT_BRICKS = 1,
-	PIVOT_LOWER_MIDDLE = 2,
-	PIVOT_LOWER_LEFT = 3
+    PIVOT_PARAMS = 0,
+    PIVOT_BRICKS = 1,
+    PIVOT_LOWER_MIDDLE = 2,
+    PIVOT_LOWER_LEFT = 3
 };
-
 
 class IndexItem
 {
-public:
-	int ItemId;
-	int TextureId;
-	ppl7::grafix::Rect pos;
-	ppl7::grafix::Point pivot;
-	ppl7::grafix::Point offset;
-
+  public:
+    int ItemId;
+    int TextureId;
+    ppl7::grafix::Rect pos;
+    ppl7::grafix::Point pivot;
+    ppl7::grafix::Point offset;
 };
 
 class CacheItem
 {
-public:
-	int id;
-	int width;
-	int height;
-	ppl7::grafix::Image albedo;
-	ppl7::grafix::Image normal;
-	ppl7::grafix::Image specular;
-	ppl7::grafix::Point pivot;
-	ppl7::grafix::Point offset;
+  public:
+    int id;
+    int width;
+    int height;
+    ppl7::grafix::Image albedo;
+    ppl7::grafix::Image normal;
+    ppl7::grafix::Image specular;
+    ppl7::grafix::Point pivot;
+    ppl7::grafix::Point offset;
 };
 
 class FreeSpace
 {
-public:
-	FreeSpace();
-	FreeSpace(int x, int y, int width, int height);
+  public:
+    FreeSpace();
+    FreeSpace(int x, int y, int width, int height);
 
-	ppl7::grafix::Rect r;
-	std::list<FreeSpace> mySpaces;
+    ppl7::grafix::Rect r;
+    std::list<FreeSpace> mySpaces;
 
-	ppl7::grafix::Rect occupy(const ppl7::grafix::Size& size);
+    ppl7::grafix::Rect occupy(const ppl7::grafix::Size &size);
 
-	bool findMatch(const ppl7::grafix::Size& size, ppl7::grafix::Rect& found);
+    bool findMatch(const ppl7::grafix::Size &size, ppl7::grafix::Rect &found);
 
-	FreeSpace* findSmallestMatch(const ppl7::grafix::Size& size);
+    FreeSpace *findSmallestMatch(const ppl7::grafix::Size &size);
 };
 
 class Texture
 {
-private:
-	int width, height;
-	ppl7::grafix::Image texture;
-	int x, y;
-	int maxy;
-	int id;
-	FreeSpace spaces;
-public:
-	Texture(int width, int height);
-	~Texture();
-	int add(const ppl7::grafix::Drawable& surface, const ppl7::grafix::Rect& r, ppl7::grafix::Rect& tgt);
-	int add(const ppl7::grafix::Drawable& surface, ppl7::grafix::Rect& tgt);
-	int GetId();
-	ppl7::PFPChunk* MakeChunk() const;
-	void SaveTexture(const char* filename) const;
-	size_t findSmallestMatch(const ppl7::grafix::Size& size);
+  private:
+    int width, height;
+    ppl7::grafix::Image texture;
+    int x, y;
+    int maxy;
+    int id;
+    FreeSpace spaces;
 
+  public:
+    Texture(int width, int height);
+    ~Texture();
+    int add(const ppl7::grafix::Drawable &surface, const ppl7::grafix::Rect &r, ppl7::grafix::Rect &tgt);
+    int add(const ppl7::grafix::Drawable &surface, ppl7::grafix::Rect &tgt);
+    int GetId();
+    ppl7::PFPChunk *MakeChunk() const;
+    void SaveTexture(const char *filename) const;
+    size_t findSmallestMatch(const ppl7::grafix::Size &size);
 };
 
 class TextureFile
 {
-private:
-	ppl7::PFPFile			File;
-	std::list<Texture>	 	TextureList;
-	std::list<IndexItem>	Index;
-	std::map<uint64_t, CacheItem> cache;
-	bool debug;
-	bool use_normal;
-	bool use_specular;
+  private:
+    ppl7::PFPFile File;
+    std::list<Texture> TextureList;
+    std::list<IndexItem> Index;
+    std::map<uint64_t, CacheItem> cache;
+    bool debug;
+    bool use_albedo;
+    bool use_normal;
+    bool use_specular;
 
-	int twidth, theight;
-	PIVOT_DETECTION pivot_detection;
-	void detectPivotBricks(const ppl7::grafix::Drawable& surface, int& px, int& py);
-	void detectPivotLowerMiddle(const ppl7::grafix::Drawable& surface, int& px, int& py);
-	void detectPivotLowerLeft(const ppl7::grafix::Drawable& surface, int& px, int& py);
-	void addIndexChunk();
-	void addTextureChunks();
+    ppl7::String albedo_path;
+    ppl7::String normal_path;
+    ppl7::String specular_path;
 
-	// cache
-	void addToCache(int id, const ppl7::grafix::Drawable& albedo, const ppl7::grafix::Drawable& normal, const ppl7::grafix::Drawable& specular, const ppl7::grafix::Rect& r, const ppl7::grafix::Point& pivot);
-	void printCache() const;
-	void generateTexturesFromCache();
-	void addToTexture(const CacheItem& item);
+    int twidth, theight;
+    PIVOT_DETECTION pivot_detection;
+    void detectPivotBricks(const ppl7::grafix::Drawable &surface, int &px, int &py);
+    void detectPivotLowerMiddle(const ppl7::grafix::Drawable &surface, int &px, int &py);
+    void detectPivotLowerLeft(const ppl7::grafix::Drawable &surface, int &px, int &py);
+    void addIndexChunk();
+    void addTextureChunks();
 
-public:
-	TextureFile();
-	~TextureFile();
+    // cache
+    void addToCache(int id, const ppl7::grafix::Drawable &albedo, const ppl7::grafix::Drawable &normal,
+                    const ppl7::grafix::Drawable &specular, const ppl7::grafix::Rect &r,
+                    const ppl7::grafix::Point &pivot);
+    void printCache() const;
+    void generateTexturesFromCache();
+    void addToTexture(const CacheItem &item);
 
-	void SetTextureSize(int width, int height);
-	void SetMaxTextureNum(int num);
-	void SetAuthor(const char* name);
-	void SetName(const char* name);
-	void SetCopyright(const char* copyright);
-	void SetDescription(const char* description);
-	void SetPivotDetection(const PIVOT_DETECTION d);
-	int AddFile(const ppl7::String& filename, int id, int pivotx, int pivoty);
-	int AddSurface(ppl7::grafix::Drawable& surface, ppl7::grafix::Drawable& normal, ppl7::grafix::Drawable& specular, ppl7::grafix::Rect* r, int id, int pivotx, int pivoty);
+  public:
+    TextureFile();
+    ~TextureFile();
 
-	void Save(const char* filename);
-	void SaveTextures(const char* prefix);
+    void EnableAlbedo(const ppl7::String &path);
+    void EnableNormal(const ppl7::String &path);
+    void EnableSpecular(const ppl7::String &path);
 
+    void SetTextureSize(int width, int height);
+    void SetMaxTextureNum(int num);
+    void SetAuthor(const char *name);
+    void SetName(const char *name);
+    void SetCopyright(const char *copyright);
+    void SetDescription(const char *description);
+    void SetPivotDetection(const PIVOT_DETECTION d);
+    int AddFile(const ppl7::String &filename, int id, int pivotx, int pivoty);
+    int AddSurface(ppl7::grafix::Drawable &surface, ppl7::grafix::Drawable &normal, ppl7::grafix::Drawable &specular,
+                   ppl7::grafix::Rect *r, int id, int pivotx, int pivoty);
+
+    void Save(const char *filename);
+    void SaveTextures(const char *prefix);
 };

@@ -52,6 +52,14 @@ class FreeSpace
 
 class Texture
 {
+  public:
+    enum class TextureType
+    {
+        Albedo,
+        Normal,
+        Specular
+    };
+
   private:
     int width, height;
     ppl7::grafix::Image texture;
@@ -59,9 +67,10 @@ class Texture
     int maxy;
     int id;
     FreeSpace spaces;
+    TextureType type;
 
   public:
-    Texture(int width, int height);
+    Texture(int width, int height, TextureType type = TextureType::Albedo);
     ~Texture();
     int add(const ppl7::grafix::Drawable &surface, const ppl7::grafix::Rect &r, ppl7::grafix::Rect &tgt);
     int add(const ppl7::grafix::Drawable &surface, ppl7::grafix::Rect &tgt);
@@ -76,6 +85,9 @@ class TextureFile
   private:
     ppl7::PFPFile File;
     std::list<Texture> TextureList;
+    std::map<int, Texture> NormalMap;
+    std::map<int, Texture> SpecularMap;
+
     std::list<IndexItem> Index;
     std::map<uint64_t, CacheItem> cache;
     bool debug;

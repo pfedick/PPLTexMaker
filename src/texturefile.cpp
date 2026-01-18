@@ -80,6 +80,16 @@ int TextureFile::AddFile(const ppl7::String &filename, int id, int pivotx, int p
     ppl7::grafix::Image specular;
 
     surface.load(filename, ppl7::grafix::RGBFormat::A8R8G8B8);
+    if (use_normal) {
+        ppl7::String normalfile = normal_path + "/" + ppl7::File::getFilename(filename);
+        printf("loading normal: %s\n", (const char *)normalfile);
+        normal.load(normalfile, ppl7::grafix::RGBFormat::A8R8G8B8);
+    }
+    if (use_specular) {
+        ppl7::String specularfile = normal_path + "/" + ppl7::File::getFilename(filename);
+        printf("loading specular: %s\n", (const char *)specularfile);
+        specular.load(specularfile, ppl7::grafix::RGBFormat::A8R8G8B8);
+    }
     // Clipping
     ppl7::grafix::Rect r;
     ppl7::grafix::Color c;
@@ -256,11 +266,24 @@ void TextureFile::addIndexChunk()
 void TextureFile::addTextureChunks()
 {
     // Nun die Texturen ergänzen
-    std::list<Texture>::const_iterator it;
-    for (it = TextureList.begin(); it != TextureList.end(); ++it) {
+    for (auto it = TextureList.begin(); it != TextureList.end(); ++it) {
         ppl7::PFPChunk *chunk = (*it).MakeChunk();
         if (!chunk) {
             throw ppl7::Exception("Texture-Chunk konnte nicht erstellt werden");
+        }
+        File.addChunk(chunk);
+    }
+    for (auto it = NormalMap.begin(); it != NormalMap.end(); ++it) {
+        ppl7::PFPChunk *chunk = (*it).second.MakeChunk();
+        if (!chunk) {
+            throw ppl7::Exception("Normal-Chunk konnte nicht erstellt werden");
+        }
+        File.addChunk(chunk);
+    }
+    for (auto it = SpecularMap.begin(); it != SpecularMap.end(); ++it) {
+        ppl7::PFPChunk *chunk = (*it).second.MakeChunk();
+        if (!chunk) {
+            throw ppl7::Exception("Specular-Chunk konnte nicht erstellt werden");
         }
         File.addChunk(chunk);
     }
@@ -281,11 +304,22 @@ void TextureFile::SaveTextures(const char *prefix)
 {
     ppl7::String Filename;
     int i = 0;
-    std::list<Texture>::const_iterator it;
-    for (it = TextureList.begin(); it != TextureList.end(); ++it) {
-        Filename.setf("%s-%02i.bmp", prefix, i);
+    for (auto it = TextureList.begin(); it != TextureList.end(); ++it) {
+        Filename.setf("%s-albedo-%02i.bmp", prefix, i);
         printf("    save texture to file: %s\n", (const char *)Filename);
         (*it).SaveTexture(Filename);
+        i++;
+    }
+    for (auto it = NormalMap.begin(); it != NormalMap.end(); ++it) {
+        Filename.setf("%s-normal-%02i.bmp", prefix, i);
+        printf("    save texture to file: %s\n", (const char *)Filename);
+        (*it).second.SaveTexture(Filename);
+        i++;
+    }
+    for (auto it = SpecularMap.begin(); it != SpecularMap.end(); ++it) {
+        Filename.setf("%s-specular-%02i.bmp", prefix, i);
+        printf("    save texture to file: %s\n", (const char *)Filename);
+        (*it).second.SaveTexture(Filename);
         i++;
     }
 }

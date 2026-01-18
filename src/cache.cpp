@@ -4,7 +4,8 @@
 
 void TextureFile::addToCache(int id, const ppl7::grafix::Drawable &albedo, const ppl7::grafix::Drawable &normal,
                              const ppl7::grafix::Drawable &specular, const ppl7::grafix::Rect &r,
-                             const ppl7::grafix::Point &pivot) {
+                             const ppl7::grafix::Point &pivot)
+{
     CacheItem item;
     item.albedo = albedo.getDrawable(r);
     if (use_normal) item.normal = normal.getDrawable(r);
@@ -22,7 +23,8 @@ void TextureFile::addToCache(int id, const ppl7::grafix::Drawable &albedo, const
     cache.insert(std::pair<uint64_t, CacheItem>(key, item));
 }
 
-void TextureFile::printCache() const {
+void TextureFile::printCache() const
+{
     printf("we have %zd sprites\n", cache.size());
     std::map<uint64_t, CacheItem>::const_reverse_iterator it;
     for (it = cache.rbegin(); it != cache.rend(); ++it) {
@@ -31,7 +33,8 @@ void TextureFile::printCache() const {
     fflush(stdout);
 }
 
-void TextureFile::generateTexturesFromCache() {
+void TextureFile::generateTexturesFromCache()
+{
     // printf("Generating textures and index for %zd sprites\n", cache.size());
     std::map<uint64_t, CacheItem>::const_reverse_iterator it;
     size_t c = 0;
@@ -44,7 +47,8 @@ void TextureFile::generateTexturesFromCache() {
     fflush(stdout);
 }
 
-void TextureFile::addToTexture(const CacheItem &item) {
+void TextureFile::addToTexture(const CacheItem &item)
+{
     // Haben wir dafür Platz in einer vorhandenen Textur?
     ppl7::grafix::Rect tgt;
     // bool found=false;
@@ -65,13 +69,6 @@ void TextureFile::addToTexture(const CacheItem &item) {
             smallest_size = bytes;
             bestmatch = tx;
         }
-
-        /*
-        if (tx->add(item.texture, tgt)) {
-            found=true;
-            break;
-        }
-        */
         ++it;
     }
     if (bestmatch) {
@@ -102,4 +99,15 @@ void TextureFile::addToTexture(const CacheItem &item) {
     // printf("added sprite %4d to texture %2d in coordinates: %4d:%4d - %4d:%4d (%4d:%4d)\n", item.id, idx.TextureId,
     // idx.pos.x1, idx.pos.y1, idx.pos.x2, idx.pos.y2, idx.pos.width(), idx.pos.height());
     Index.push_back(idx);
+
+    if (use_normal) {
+        auto it = NormalMap.find(idx.TextureId);
+        if (it != NormalMap.end()) {
+            it->second.add(item.normal, tgt);
+        } else {
+            Texture *normal_tx = new Texture(twidth, theight, Texture::TextureType::Normal);
+            NormalMap.insert(std::pair<int, Texture>(idx.TextureId, *normal_tx));
+            normal_tx->add(item.normal, tgt);
+        }
+    }
 }

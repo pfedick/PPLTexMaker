@@ -58,6 +58,7 @@ void TextureFile::addToTexture(const CacheItem &item)
     Texture *tx = NULL;
     ppl7::grafix::Size size(item.width, item.height);
     size_t smallest_size = 0;
+    // ppl7::PrintDebug("Adding sprite id=%d size=%dx%d to texture\n", item.id, item.width, item.height);
 
     while (it != TextureList.end()) {
         tx = &(*it);
@@ -96,18 +97,29 @@ void TextureFile::addToTexture(const CacheItem &item)
     idx.pivot.y = item.pivot.y;
     idx.offset.x = item.offset.x;
     idx.offset.y = item.offset.y;
-    // printf("added sprite %4d to texture %2d in coordinates: %4d:%4d - %4d:%4d (%4d:%4d)\n", item.id, idx.TextureId,
-    // idx.pos.x1, idx.pos.y1, idx.pos.x2, idx.pos.y2, idx.pos.width(), idx.pos.height());
+    if (debug)
+        printf("added sprite %4d to texture %2d in coordinates: %4d:%4d - %4d:%4d (%4d:%4d)\n", item.id, idx.TextureId,
+               idx.pos.x1, idx.pos.y1, idx.pos.x2, idx.pos.y2, idx.pos.width(), idx.pos.height());
     Index.push_back(idx);
 
     if (use_normal) {
         auto it = NormalMap.find(idx.TextureId);
         if (it != NormalMap.end()) {
-            it->second.add(item.normal, tgt);
+            it->second.blt(item.normal, tgt);
         } else {
             Texture *normal_tx = new Texture(twidth, theight, Texture::TextureType::Normal);
+            normal_tx->blt(item.normal, tgt);
             NormalMap.insert(std::pair<int, Texture>(idx.TextureId, *normal_tx));
-            normal_tx->add(item.normal, tgt);
+        }
+    }
+    if (use_specular) {
+        auto it = SpecularMap.find(idx.TextureId);
+        if (it != SpecularMap.end()) {
+            it->second.blt(item.specular, tgt);
+        } else {
+            Texture *specular_tx = new Texture(twidth, theight, Texture::TextureType::Specular);
+            specular_tx->blt(item.specular, tgt);
+            SpecularMap.insert(std::pair<int, Texture>(idx.TextureId, *specular_tx));
         }
     }
 }

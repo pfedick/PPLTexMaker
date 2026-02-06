@@ -163,6 +163,11 @@ int Texture::add(const ppl7::grafix::Drawable &surface, ppl7::grafix::Rect &tgt)
     return 0;
 }
 
+void Texture::blt(const ppl7::grafix::Drawable &surface, const ppl7::grafix::Rect &tgt)
+{
+    texture.blt(surface, tgt.x1, tgt.y1);
+}
+
 ppl7::PFPChunk *Texture::MakeChunk() const
 {
     // Sprite-Daten komprimieren

@@ -74,6 +74,7 @@ class Texture
     ~Texture();
     int add(const ppl7::grafix::Drawable &surface, const ppl7::grafix::Rect &r, ppl7::grafix::Rect &tgt);
     int add(const ppl7::grafix::Drawable &surface, ppl7::grafix::Rect &tgt);
+    void blt(const ppl7::grafix::Drawable &surface, const ppl7::grafix::Rect &tgt);
     int GetId();
     ppl7::PFPChunk *MakeChunk() const;
     void SaveTexture(const char *filename) const;

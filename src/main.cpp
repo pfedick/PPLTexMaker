@@ -236,7 +236,7 @@ int main(int argc, char **argv)
         return 1;
     }
     if (savepng.notEmpty()) {
-        printf("saving texturen...\n");
+        printf("saving textures...\n");
         Tex.SaveTextures(savepng);
     }
     return 0;

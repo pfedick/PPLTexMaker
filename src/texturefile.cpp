@@ -82,12 +82,12 @@ int TextureFile::AddFile(const ppl7::String &filename, int id, int pivotx, int p
     surface.load(filename, ppl7::grafix::RGBFormat::A8R8G8B8);
     if (use_normal) {
         ppl7::String normalfile = normal_path + "/" + ppl7::File::getFilename(filename);
-        printf("loading normal: %s\n", (const char *)normalfile);
+        printf("    loading normal: %s\n", (const char *)normalfile);
         normal.load(normalfile, ppl7::grafix::RGBFormat::A8R8G8B8);
     }
     if (use_specular) {
         ppl7::String specularfile = normal_path + "/" + ppl7::File::getFilename(filename);
-        printf("loading specular: %s\n", (const char *)specularfile);
+        printf("    loading specular: %s\n", (const char *)specularfile);
         specular.load(specularfile, ppl7::grafix::RGBFormat::A8R8G8B8);
     }
     // Clipping
@@ -310,12 +310,14 @@ void TextureFile::SaveTextures(const char *prefix)
         (*it).SaveTexture(Filename);
         i++;
     }
+    i = 0;
     for (auto it = NormalMap.begin(); it != NormalMap.end(); ++it) {
         Filename.setf("%s-normal-%02i.bmp", prefix, i);
         printf("    save texture to file: %s\n", (const char *)Filename);
         (*it).second.SaveTexture(Filename);
         i++;
     }
+    i = 0;
     for (auto it = SpecularMap.begin(); it != SpecularMap.end(); ++it) {
         Filename.setf("%s-specular-%02i.bmp", prefix, i);
         printf("    save texture to file: %s\n", (const char *)Filename);

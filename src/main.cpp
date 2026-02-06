@@ -8,7 +8,7 @@
 
 void help()
 {
-    printf("PPL TexMaker Version %s.%s\n"
+    printf("PPL TexMaker Version %s-%s\n"
            "\n"
            "Optionen:\n"
            "   -s DIR   source directory\n"
@@ -65,9 +65,10 @@ int loadFromDirectory(const ppl7::String &source, int px, int py, TextureFile &T
             std::vector<ppl7::String> matches;
             if (regex.capture("/^.*?([0-9]+)_([0-9]+)\\.png$/", Entry.File, matches)) {
                 id = matches[1].toInt() + matches[2].toInt();
-                printf("we have two matches: %s, %s, id=%d\n", (const char *)matches[1], (const char *)matches[2], id);
+                // printf("we have two matches: %s, %s, id=%d\n", (const char *)matches[1], (const char *)matches[2],
+                // id);
             } else if (regex.capture("/^.*?([0-9]+)\\.png$/", Entry.File, matches)) {
-                printf("we have a match: %s\n", (const char *)matches[1]);
+                // printf("we have a match: %s\n", (const char *)matches[1]);
                 id = matches[1].toInt();
             }
         }
